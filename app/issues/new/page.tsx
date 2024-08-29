@@ -7,17 +7,19 @@ import { Controller, useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createIssueSchema } from '@/app/createIssueSchema';
+import { z } from 'zod';
 
-interface IssueForm{
-  title: string;
-  description: string;
-}
+type IssueForm = z.infer<typeof createIssueSchema>;
 
 
 const NewIssuePage = () => {
 
   const router = useRouter();
-  const {register, control, handleSubmit} = useForm<IssueForm>(); 
+  const {register, control, handleSubmit, formState: { errors}} = useForm<IssueForm>({
+    resolver: zodResolver(createIssueSchema)
+  }); 
   const [error, setError] = useState('');
 
   return (
@@ -37,12 +39,15 @@ const NewIssuePage = () => {
           }
         })}>
         <TextField.Root placeholder='Title' {...register('title')} />
+
+        {errors.title && <p className='text-red-500'> {errors.title.message} </p>}
+
         <Controller
           name='description'
           control={control}
           render={({field})=> <SimpleMDE placeholder='Description' {...field} /> }
           />
-        
+        {errors.description && <p className='text-red-500'>{errors.description.message} </p>}
         <Button>Submit New Issue</Button>
       </form>
 
